@@ -11,14 +11,15 @@ on:
   workflow_dispatch:
 
 env:
-  working_dir: 'deployments'
+  TERRAGRUNT_WORKING_DIR: './deployments'
   TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
   format:
     name: Format
     runs-on: ubuntu-latest
-    container: hansohn/terrafrom-aws:latest
+    container:
+      image: hansohn/terraform-aws:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +30,9 @@ jobs:
   # validate:
   #   name: Validate
   #   runs-on: ubuntu-latest
-  #   container: hansohn/terrafrom-aws:latest
+  #   container:
+  #     image: hansohn/terraform-aws:latest
+  #   needs: [ format ]
   #   steps:
   #     - name: Checkout
   #       uses: actions/checkout@v4
@@ -49,7 +52,8 @@ jobs:
   # plan:
   #   name: Plan
   #   runs-on: ubuntu-latest
-  #   container: hansohn/terrafrom-aws:latest
+  #   container:
+  #     image: hansohn/terraform-aws:latest
   #   needs: [ validate ]
   #   steps:
   #     - name: Checkout
@@ -70,7 +74,8 @@ jobs:
   # deploy:
   #   name: Deploy
   #   runs-on: ubuntu-latest
-  #   container: hansohn/terrafrom-aws:latest
+  #   container:
+  #     image: hansohn/terraform-aws:latest
   #   needs: [ plan ]
   #   if: github.ref == 'refs/heads/main'
   #   steps:
