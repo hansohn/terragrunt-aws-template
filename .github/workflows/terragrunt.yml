@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
 
 env:
-  TERRGARUNT_VALIDATE: 'true'
-  TERRGARUNT_PLAN: 'false'
-  TERRAGRUNT_DEPLOY: 'false'
+  TERRGARUNT_VALIDATE: ${{ true }}
+  TERRGARUNT_PLAN: ${{ false }}
+  TERRAGRUNT_DEPLOY: ${{ false }}
   TERRAGRUNT_WORKING_DIR: './deployments'
   TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
@@ -36,7 +36,7 @@ jobs:
     container:
       image: hansohn/terraform-aws:latest
     needs: [ format ]
-    if: github.env.TERRGARUNT_VALIDATE == 'true'
+    if: ${{ github.env.TERRGARUNT_VALIDATE == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
     container:
       image: hansohn/terraform-aws:latest
     needs: [ validate ]
-    if: github.env.TERRGARUNT_PLAN == 'true'
+    if: ${{ github.env.TERRGARUNT_PLAN == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
     needs: [ plan ]
     if: |
       github.ref == 'refs/heads/main'
-      && github.env.TERRGARUNT_DEPLOY == 'true'
+      && ${{ github.env.TERRGARUNT_DEPLOY == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@main
