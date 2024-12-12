@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 env:
-  TERRGARUNT_VALIDATE: ${{ false }}
+  TERRGARUNT_VALIDATE: ${{ true }}
   TERRGARUNT_PLAN: ${{ false }}
   TERRAGRUNT_DEPLOY: ${{ false }}
   TERRAGRUNT_WORKING_DIR: './deployments'
