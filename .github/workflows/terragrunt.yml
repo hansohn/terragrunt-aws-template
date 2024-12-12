@@ -36,7 +36,7 @@ jobs:
     container:
       image: hansohn/terraform-aws:latest
     needs: [ format ]
-    if: env.TERRGARUNT_VALIDATE == 'true'
+    if: TERRGARUNT_VALIDATE == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
     container:
       image: hansohn/terraform-aws:latest
     needs: [ validate ]
-    if: env.TERRGARUNT_PLAN == 'true'
+    if: TERRGARUNT_PLAN == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
     needs: [ plan ]
     if: |
       github.ref == 'refs/heads/main'
-      && env.TERRGARUNT_DEPLOY == 'true'
+      && TERRGARUNT_DEPLOY == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@main
