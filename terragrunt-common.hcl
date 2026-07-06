@@ -17,13 +17,11 @@ locals {
 
   config = {
     deployments = {
-      bucket     = "${local.aws_account_name}-tf-state-${local.aws_region}"
-      lock_table = "terraform-state-lock"
-      role_name  = "Org/CodeDeployRole"
+      bucket    = "${local.aws_account_name}-tf-state-${local.aws_region}"
+      role_name = "Org/CodeDeployRole"
     }
   }
 
-  lock_table   = local.config[local.namespace]["lock_table"]
   state_bucket = local.config[local.namespace]["bucket"]
   role_name    = local.config[local.namespace]["role_name"]
 }
@@ -35,11 +33,11 @@ generate "backend" {
   contents = <<-EOF
     terraform {
       backend "s3" {
-        bucket         = "${local.state_bucket}"
-        key            = "${local.repo_name}/${local.relative_path}/terraform.tfstate"
-        region         = "us-west-2"
-        dynamodb_table = "${local.lock_table}"
-        encrypt        = true
+        bucket       = "${local.state_bucket}"
+        key          = "${local.repo_name}/${local.relative_path}/terraform.tfstate"
+        region       = "us-west-2"
+        use_lockfile = true
+        encrypt      = true
         assume_role = {
           role_arn = "arn:aws:iam::${local.aws_account_id}:role/${local.role_name}"
         }
