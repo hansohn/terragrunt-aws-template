@@ -77,32 +77,6 @@ steps:
 Store the per-account `DeployRoleArn` (a stack output from the bootstrap seed)
 as a GitHub **Environment** secret so each environment maps to its own account.
 
-<!-- BEGIN_TF_DOCS -->
-## Requirements
-
-No requirements.
-
-## Providers
-
-No providers.
-
-## Modules
-
-No modules.
-
-## Resources
-
-No resources.
-
-## Inputs
-
-No inputs.
-
-## Outputs
-
-No outputs.
-<!-- END_TF_DOCS -->
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [bootstrap]: https://github.com/hansohn/aws-account-bootstrap
