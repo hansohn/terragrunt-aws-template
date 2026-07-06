@@ -1,6 +1,6 @@
 SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := dev
 .DELETE_ON_ERROR:
 .SUFFIXES:
 
@@ -40,18 +40,16 @@ DOCKER_ARGS += --volume $(SSH_AUTH_SOCK_MAGIC_PATH):$(SSH_AUTH_SOCK_MAGIC_PATH)
 endif
 
 
-## Docker run local dev env
-docker/run: ENTRYPOINT ?= bash
+## Run local dev env
+dev: ENTRYPOINT ?= bash
 
-docker/run:
+dev:
 	docker run \
 		$(DOCKER_ARGS) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG) \
 		$(ENTRYPOINT)
 
-## Docker docker/run alias
-docker: docker/run
-.PHONY: docker all
+.PHONY: dev
 
 CLEAN_DIRS  += .terraform .terragrunt-cache
 CLEAN_FILES += 'auto-*.tf' terraform.plan .terraform.lock.hcl
