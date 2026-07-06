@@ -1,6 +1,6 @@
 SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := dev
 .DELETE_ON_ERROR:
 .SUFFIXES:
 
@@ -31,7 +31,6 @@ DOCKER_ARGS += --volume ${PWD}:/app
 DOCKER_ARGS += --volume ${HOME}/.aws:/root/.aws
 DOCKER_ARGS += --volume ${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts
 DOCKER_ARGS += --volume ${HOME}/.gitconfig:/root/.gitconfig:ro
-DOCKER_ARGS += --volume ${HOME}/.netrc:/root/.netrc:ro
 DOCKER_ARGS += --pull $(DOCKER_PULL)
 
 SSH_AUTH_SOCK_MAGIC_PATH := /run/host-services/ssh-auth.sock
@@ -41,18 +40,16 @@ DOCKER_ARGS += --volume $(SSH_AUTH_SOCK_MAGIC_PATH):$(SSH_AUTH_SOCK_MAGIC_PATH)
 endif
 
 
-## Docker run local dev env
-docker/run: ENTRYPOINT ?= bash
+## Run local dev env
+dev: ENTRYPOINT ?= bash
 
-docker/run:
+dev:
 	docker run \
 		$(DOCKER_ARGS) \
 		$(DOCKER_IMAGE):$(DOCKER_TAG) \
 		$(ENTRYPOINT)
 
-## Docker docker/run alias
-docker: docker/run
-.PHONY: docker all
+.PHONY: dev
 
 CLEAN_DIRS  += .terraform .terragrunt-cache
 CLEAN_FILES += 'auto-*.tf' terraform.plan .terraform.lock.hcl
