@@ -8,6 +8,11 @@ output:
     {{ .Content }}
     <!-- END_TF_DOCS -->
 
+sections:
+  show:
+    - inputs
+    - outputs
+
 sort:
   enabled: true
   by: name
