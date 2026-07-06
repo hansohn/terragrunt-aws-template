@@ -31,7 +31,6 @@ DOCKER_ARGS += --volume ${PWD}:/app
 DOCKER_ARGS += --volume ${HOME}/.aws:/root/.aws
 DOCKER_ARGS += --volume ${HOME}/.ssh/known_hosts:/root/.ssh/known_hosts
 DOCKER_ARGS += --volume ${HOME}/.gitconfig:/root/.gitconfig:ro
-DOCKER_ARGS += --volume ${HOME}/.netrc:/root/.netrc:ro
 DOCKER_ARGS += --pull $(DOCKER_PULL)
 
 SSH_AUTH_SOCK_MAGIC_PATH := /run/host-services/ssh-auth.sock
