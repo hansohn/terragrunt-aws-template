@@ -14,6 +14,11 @@ env:
   TG_WORKING_DIR: './deployments'
   TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
+# Private repos need actions:read for the Slack status action to query the run.
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   format:
     name: Format
