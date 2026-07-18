@@ -1,0 +1,67 @@
+---
+name: AWS auth (hub -> deploy role)
+description: >-
+  Authenticate to the target account via the hub trust model: OIDC into the
+  management-account TerraformRunnerRole, resolve the account id from AWS
+  Organizations by name (no committed account map), then role-chain into that
+  account's TerraformDeploymentRole. Leaves deploy credentials in the job env
+  for subsequent steps.
+
+inputs:
+  runner-role-arn:
+    description: ARN of the hub TerraformRunnerRole in the management account.
+    required: true
+  account-name:
+    description: >-
+      AWS Organizations account name to deploy into (e.g. "myorg-sandbox").
+      Resolved to an account id via organizations:ListAccounts.
+    required: true
+  deploy-role-path:
+    description: Path + name of the per-account deploy role to chain into.
+    required: false
+    default: Org/TerraformDeploymentRole
+  aws-region:
+    description: Region for the AWS SDK/CLI.
+    required: false
+    default: us-west-2
+
+runs:
+  using: composite
+  steps:
+    # Hop 1: exchange the GitHub OIDC token for the hub runner role.
+    - name: Assume hub runner role (OIDC)
+      uses: aws-actions/configure-aws-credentials@v5
+      with:
+        role-to-assume: ${{ inputs.runner-role-arn }}
+        role-session-name: gha-${{ github.run_id }}
+        aws-region: ${{ inputs.aws-region }}
+        # The runner role grants sts:AssumeRole only (least privilege) — not
+        # sts:TagSession — so don't let the action add session tags.
+        role-skip-session-tagging: true
+
+    # Resolve the deployment path's account name to an id from the org itself.
+    - name: Resolve target account id
+      id: resolve
+      shell: bash
+      run: |
+        set -euo pipefail
+        id=$(aws organizations list-accounts \
+          --query "Accounts[?Name=='${{ inputs.account-name }}'].Id" \
+          --output text)
+        if [ -z "$id" ] || [ "$id" = "None" ]; then
+          echo "::error::no AWS Organizations account named '${{ inputs.account-name }}'"
+          exit 1
+        fi
+        echo "account-id=$id" >> "$GITHUB_OUTPUT"
+
+    # Hop 2: role-chain from the runner into the account's deploy role.
+    - name: Assume deploy role (chained)
+      uses: aws-actions/configure-aws-credentials@v5
+      with:
+        role-to-assume: >-
+          arn:aws:iam::${{ steps.resolve.outputs.account-id }}:role/${{ inputs.deploy-role-path }}
+        role-session-name: gha-deploy-${{ github.run_id }}
+        role-chaining: true
+        aws-region: ${{ inputs.aws-region }}
+        # The deploy role's trust grants sts:AssumeRole only — skip TagSession.
+        role-skip-session-tagging: true
