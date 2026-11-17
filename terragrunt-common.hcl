@@ -1,3 +1,7 @@
+# use_lockfile (S3 native locking) needs Terraform 1.10 or later.
+terraform_version_constraint  = "~> 1.10"
+terragrunt_version_constraint = ">= 1.0"
+
 locals {
   # Determine deployment location based on the repo path:
   #   "<namespace>/<aws_account_name>/<aws_region>/<deployment_name>"
