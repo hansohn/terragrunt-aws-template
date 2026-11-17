@@ -1,7 +1,6 @@
 ---
 name: terragrunt
 
-# yamllint disable-line rule:truthy
 on:
   push:
     branches:
@@ -28,21 +27,20 @@ env:
   ACCOUNT_LABEL: 'sandbox'
   AWS_REGION: 'us-west-2'
 
-# id-token: OIDC exchange. actions:read: Slack status action queries the run.
 permissions:
   contents: read
-  actions: read
-  id-token: write
 
 jobs:
   format:
     name: Format
     runs-on: ubuntu-latest
     container:
-      image: hansohn/terraform-aws:latest
+      image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check terragrunt HCL
         run: 'terragrunt hcl format --check --diff'
@@ -51,11 +49,13 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     container:
-      image: hansohn/terraform-aws:latest
-    needs: [ format ]
+      image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
+    needs: [format]
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       # tflint ships with the AWS ruleset baked into the image
       # (checksum-verified, no `tflint --init` / GITHUB_TOKEN required).
@@ -64,14 +64,19 @@ jobs:
 
   plan:
     name: Plan
+    permissions:
+      contents: read
+      id-token: write  # OIDC exchange
     runs-on: ubuntu-latest
     container:
-      image: hansohn/terraform-aws:latest
-    needs: [ format, lint ]
+      image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
+    needs: [format, lint]
     # Add an `env:` block here to wire any per-repo provider secrets.
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Authenticate to AWS
         uses: ./.github/actions/aws-auth
@@ -88,10 +93,13 @@ jobs:
 
   deploy:
     name: Deploy
+    permissions:
+      contents: read
+      id-token: write  # OIDC exchange
     runs-on: ubuntu-latest
     container:
-      image: hansohn/terraform-aws:latest
-    needs: [ plan ]
+      image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
+    needs: [plan]
     # Tag-as-approval: apply only when a version tag is pushed. Branch pushes
     # stop at Plan; pushing `vX.Y.Z` is the deliberate act that rolls out.
     if: startsWith(github.ref, 'refs/tags/')
@@ -101,7 +109,9 @@ jobs:
     # Add an `env:` block here to wire any per-repo provider secrets.
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Authenticate to AWS
         uses: ./.github/actions/aws-auth
@@ -115,17 +125,22 @@ jobs:
 
   slack:
     name: Slack
+    permissions:
+      contents: read
+      actions: read  # status action queries the run
     runs-on: ubuntu-latest
     # deploy is skipped on branch pushes; always() runs slack regardless, and
     # the status action reads the whole run — so tag runs report post-apply.
-    needs: [ format, lint, plan, deploy ]
+    needs: [format, lint, plan, deploy]
     if: always()
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Slack Notification
-        uses: Gamesight/slack-workflow-status@v2.0.0
+        uses: Gamesight/slack-workflow-status@2e709ce51fd47f02b7221db8547e6e6f49f81f1d  # v2.0.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK }}

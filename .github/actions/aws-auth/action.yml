@@ -30,7 +30,7 @@ runs:
   steps:
     # Hop 1: exchange the GitHub OIDC token for the hub runner role.
     - name: Assume hub runner role (OIDC)
-      uses: aws-actions/configure-aws-credentials@v6
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd  # v6.3.0
       with:
         role-to-assume: ${{ inputs.runner-role-arn }}
         role-session-name: gha-${{ github.run_id }}
@@ -43,20 +43,22 @@ runs:
     - name: Resolve target account id
       id: resolve
       shell: bash
+      env:
+        ACCOUNT_NAME: ${{ inputs.account-name }}
       run: |
         set -euo pipefail
         id=$(aws organizations list-accounts \
-          --query "Accounts[?Name=='${{ inputs.account-name }}'].Id" \
+          --query "Accounts[?Name=='${ACCOUNT_NAME}'].Id" \
           --output text)
         if [ -z "$id" ] || [ "$id" = "None" ]; then
-          echo "::error::no AWS Organizations account named '${{ inputs.account-name }}'"
+          echo "::error::no AWS Organizations account named '${ACCOUNT_NAME}'"
           exit 1
         fi
         echo "account-id=$id" >> "$GITHUB_OUTPUT"
 
     # Hop 2: role-chain from the runner into the account's deploy role.
     - name: Assume deploy role (chained)
-      uses: aws-actions/configure-aws-credentials@v6
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd  # v6.3.0
       with:
         role-to-assume: >-
           arn:aws:iam::${{ steps.resolve.outputs.account-id }}:role/${{ inputs.deploy-role-path }}

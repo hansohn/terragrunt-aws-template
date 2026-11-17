@@ -1,27 +1,56 @@
 <div align="center">
-  <h3>terragrunt-aws-template</h3>
-  <p>Terragrunt AWS Module Template Repository</p>
+  <h1>terragrunt-aws-template</h1>
+  <p>Terragrunt AWS template repository with CI plan/apply, OIDC authentication and a Docker-based dev environment.</p>
   <p>
-    <!-- Build Status -->
-    <a href="https://actions-badge.atrox.dev/hansohn/terragrunt-aws-template/goto?ref=main">
-      <img src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fhansohn%2Fterragrunt-aws-template%2Fbadge%3Fref%3Dmain&style=for-the-badge">
-    </a>
-    <!-- Github Tag -->
-    <a href="https://gitHub.com/hansohn/terragrunt-aws-template/tags/">
-      <img src="https://img.shields.io/github/tag/hansohn/terragrunt-aws-template.svg?style=for-the-badge">
-    </a>
+    <!-- CI -->
+    <a href="https://github.com/hansohn/terragrunt-aws-template/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/hansohn/terragrunt-aws-template/ci.yml?branch=main&label=CI&style=for-the-badge"></a>
+    <!-- Tag -->
+    <a href="https://github.com/hansohn/terragrunt-aws-template/tags"><img alt="Tag" src="https://img.shields.io/github/v/tag/hansohn/terragrunt-aws-template?sort=semver&style=for-the-badge"></a>
     <!-- License -->
-    <a href="https://github.com/hansohn/terragrunt-aws-template/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/hansohn/terragrunt-aws-template.svg?style=for-the-badge">
-    </a>
+    <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/hansohn/terragrunt-aws-template?style=for-the-badge"></a>
+  </p>
+  <p>
+    <a href="#quick-start">Quick Start</a> •
+    <a href="#usage">Usage</a> •
+    <a href="#development">Development</a> •
+    <a href="#contributing">Contributing</a>
   </p>
 </div>
 
-## :open_book: Usage
+## Overview
 
-Welcome to the terragrunt-aws-template repo!
+A starting point for Terragrunt stacks on AWS. Stacks live under
+`deployments/<account>/<region>/<stack>`, share one
+`terragrunt-common.hcl`, and deploy from GitHub Actions without long-lived credentials.
 
-Deployments live under `deployments/<namespace>/<account>/<region>/<stack>`, and
+## Highlights
+
+- **Path-driven stacks** // The `deployments/<account>/<region>/<stack>` path sets the region and stack name; CI picks the account from `ACCOUNT_LABEL`
+- **OIDC deploys** // GitHub Actions assumes a hub runner role, then chains into the account's deploy role
+- **Tag-as-approval** // Branch pushes plan; pushing `vX.Y.Z` applies
+- **Local plans** // `make dev` opens a container with the same tooling as CI
+- **Repo hygiene** // yamllint, actionlint and zizmor in CI, Conventional Commit PR titles
+
+## Prerequisites
+
+- Make, Git and Docker
+- AWS CLI with SSO access to the target account
+- [yamllint](https://yamllint.readthedocs.io/), [actionlint](https://github.com/rhysd/actionlint) and [zizmor](https://docs.zizmor.sh/) for `make lint`
+
+## Quick Start
+
+```bash
+gh repo create hansohn/<name> --template hansohn/terragrunt-aws-template --private --clone
+```
+
+Then set the `RUNNER_ROLE_ARN` and `ORG_PREFIX` repository variables
+(Settings > Secrets and variables > Actions > Variables). Update `ACCOUNT_LABEL`
+in `.github/workflows/terragrunt.yml`. Add the `SLACK_WEBHOOK`, `SLACK_CHANNEL_ID` and
+`SLACK_USERNAME` secrets, which the `slack` job needs.
+
+## Usage
+
+Deployments live under `deployments/<account>/<region>/<stack>`, and
 that path is how Terragrunt locates each stack. Each account is bootstrapped by
 [`aws-account-bootstrap`][bootstrap], which provisions the S3 backend, the
 deploy/plan roles, and the `/org/tf/state-bucket` SSM parameter this template
@@ -57,26 +86,37 @@ terragrunt plan                          # or: terragrunt run --all plan
 
 Apply is blocked by IAM on this role — applies run in CI.
 
-### CI (apply)
+### CI
 
-GitHub Actions authenticates via OIDC and assumes **`CodeDeployRole`** directly
-(no central account, no role chaining):
+`.github/workflows/terragrunt.yml` runs format, lint and plan on every branch push.
+Pushing a `vX.Y.Z` tag applies. Authentication is handled by
+`.github/actions/aws-auth`: OIDC into the hub `TerraformRunnerRole`, then
+role-chaining into the target account's `TerraformDeploymentRole`.
 
-```yaml
-permissions:
-  id-token: write        # required for OIDC
-  contents: read
-steps:
-  - uses: aws-actions/configure-aws-credentials@v4
-    with:
-      role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-      aws-region: us-west-2
-  # ... terragrunt run --all apply
+## Development
+
+```bash
+make help    # list targets
+make lint    # run yamllint, actionlint and zizmor
+make dev     # open the local dev container
 ```
 
-Store the per-account `DeployRoleArn` (a stack output from the bootstrap seed)
-as a GitHub **Environment** secret so each environment maps to its own account.
+## Security
 
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+To report a vulnerability, see the [Security Policy](https://github.com/hansohn/.github/blob/HEAD/SECURITY.md).
+Do not open a public issue.
+
+## Contributing
+
+Contributions are welcome. See the [Contributing Guide](https://github.com/hansohn/.github/blob/HEAD/CONTRIBUTING.md)
+for the full workflow.
+
+- Report bugs via [Bug Reports](https://github.com/hansohn/terragrunt-aws-template/issues/new?template=bug-report.yml)
+- Request features via [Feature Requests](https://github.com/hansohn/terragrunt-aws-template/issues/new?template=feature-request.yml)
+- Follow the [Code of Conduct](https://github.com/hansohn/.github/blob/HEAD/CODE_OF_CONDUCT.md)
+
+## License
+
+Apache 2.0. See [LICENSE](LICENSE).
+
 [bootstrap]: https://github.com/hansohn/aws-account-bootstrap
