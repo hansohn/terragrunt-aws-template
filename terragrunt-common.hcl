@@ -10,9 +10,12 @@ locals {
   aws_region_raw   = element(local.relative_path_lst, 2)
   deployment_name  = element(local.relative_path_lst, 3)
 
-  aws_region         = length(regexall("^([a-z]{2}(?:-gov){0,1}-(?:central|east|north|south|west){1,2}-\\d)$", local.aws_region_raw)) > 0 ? local.aws_region_raw : local.default_aws_region
-  default_aws_region = get_env("AWS_DEFAULT_REGION", "us-west-2")
-  repo_name          = get_env("REPO_NAME", "unknown")
+  # regex() fails the run when the directory name is not an AWS region, rather
+  # than silently deploying to a default region.
+  aws_region = regex("^[a-z]{2}(?:-gov){0,1}-(?:central|east|north|south|west){1,2}-\\d$", local.aws_region_raw)
+
+  # No default: a missing REPO_NAME must fail, not move state to a new key.
+  repo_name = get_env("REPO_NAME")
 
   # Region where the Terraform state bucket and its SSM registration live.
   state_region = get_env("TF_STATE_REGION", "us-west-2")
