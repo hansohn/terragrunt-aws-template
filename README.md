@@ -20,12 +20,12 @@
 ## Overview
 
 A starting point for Terragrunt stacks on AWS. Stacks live under
-`deployments/<namespace>/<account>/<region>/<stack>`, share one
+`deployments/<account>/<region>/<stack>`, share one
 `terragrunt-common.hcl`, and deploy from GitHub Actions without long-lived credentials.
 
 ## Highlights
 
-- **Path-driven stacks** // The `deployments/` path selects the account, region and stack
+- **Path-driven stacks** // The `deployments/<account>/<region>/<stack>` path sets the region and stack name; CI picks the account from `ACCOUNT_LABEL`
 - **OIDC deploys** // GitHub Actions assumes a hub runner role, then chains into the account's deploy role
 - **Tag-as-approval** // Branch pushes plan; pushing `vX.Y.Z` applies
 - **Local plans** // `make dev` opens a container with the same tooling as CI
@@ -44,12 +44,13 @@ gh repo create hansohn/<name> --template hansohn/terragrunt-aws-template --priva
 ```
 
 Then set the `RUNNER_ROLE_ARN` and `ORG_PREFIX` repository variables
-(Settings > Secrets and variables > Actions > Variables) and update `ACCOUNT_LABEL`
-in `.github/workflows/terragrunt.yml`.
+(Settings > Secrets and variables > Actions > Variables). Update `ACCOUNT_LABEL`
+in `.github/workflows/terragrunt.yml`. Add the `SLACK_WEBHOOK`, `SLACK_CHANNEL_ID` and
+`SLACK_USERNAME` secrets, which the `slack` job needs.
 
 ## Usage
 
-Deployments live under `deployments/<namespace>/<account>/<region>/<stack>`, and
+Deployments live under `deployments/<account>/<region>/<stack>`, and
 that path is how Terragrunt locates each stack. Each account is bootstrapped by
 [`aws-account-bootstrap`][bootstrap], which provisions the S3 backend, the
 deploy/plan roles, and the `/org/tf/state-bucket` SSM parameter this template
