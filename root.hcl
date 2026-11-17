@@ -14,9 +14,11 @@ locals {
   aws_region_raw   = element(local.relative_path_lst, 2)
   deployment_name  = element(local.relative_path_lst, 3)
 
-  # regex() fails the run when the directory name is not an AWS region, rather
-  # than silently deploying to a default region.
-  aws_region = regex("^[a-z]{2}(?:-gov){0,1}-(?:central|east|north|south|west){1,2}-\\d$", local.aws_region_raw)
+  # Account-wide resources such as IAM live in a "_global" directory. They use
+  # one fixed home region. Any other directory name must be an AWS region:
+  # regex() fails the run otherwise, rather than silently using a default.
+  global_region = get_env("GLOBAL_REGION", "us-west-2")
+  aws_region    = local.aws_region_raw == "_global" ? local.global_region : regex("^[a-z]{2}(?:-gov){0,1}-(?:central|east|north|south|west){1,2}-\\d$", local.aws_region_raw)
 
   # No default: a missing REPO_NAME must fail, not move state to a new key.
   repo_name = get_env("REPO_NAME")

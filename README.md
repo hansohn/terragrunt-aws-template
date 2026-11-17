@@ -59,6 +59,10 @@ in the target account, so `root.hcl` resolves the account ID from
 `aws sts get-caller-identity` and the backend bucket from SSM (no `assume_role`,
 no org lookup).
 
+Account-wide resources such as IAM go in `deployments/<account>/_global/<stack>`.
+The `_global` stacks use the region in `GLOBAL_REGION` (default `us-west-2`). Any
+other directory in the region position must be an AWS region name, or the run fails.
+
 ### Local plans
 
 Humans assume the read-only **`CodePlanRole`** via their SSO permission set, so
