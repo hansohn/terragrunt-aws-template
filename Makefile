@@ -108,7 +108,7 @@ dev:
 #-------------------------------------------------------------------------------
 
 CLEAN_DIRS  += .terraform .terragrunt-cache
-CLEAN_FILES += 'auto-*.tf' terraform.plan .terraform.lock.hcl
+CLEAN_FILES += 'auto-*.tf' terraform.plan
 $(CLEAN_DIRS):
 	find . -type d -name $@ -prune -exec rm -rf {} \;
 $(CLEAN_FILES):
