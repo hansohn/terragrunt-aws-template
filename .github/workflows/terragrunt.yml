@@ -10,8 +10,11 @@ on:
   workflow_dispatch:
 
 env:
-  TG_WORKING_DIR: './deployments'
-  # State key + provider tags read by terragrunt-common.hcl (matches the local
+  # Scope runs to one account's directory so a stack for another account is
+  # never planned or applied with these credentials. Keep in sync with
+  # ACCOUNT_LABEL below.
+  TG_WORKING_DIR: './deployments/sandbox'
+  # State key + provider tags read by root.hcl (matches the local
   # Makefile's `basename $PWD`, so CI and local share one state path).
   REPO_NAME: ${{ github.event.repository.name }}
   # Hub trust model (see hansohn/aws-org-bootstrap): OIDC into this runner role,
@@ -34,6 +37,9 @@ jobs:
   format:
     name: Format
     runs-on: ubuntu-latest
+    env:
+      # Check every HCL file, including root.hcl, not only the sandbox units.
+      TG_WORKING_DIR: '.'
     container:
       image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
     steps:

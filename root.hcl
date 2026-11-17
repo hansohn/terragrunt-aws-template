@@ -1,3 +1,7 @@
+# use_lockfile (S3 native locking) needs Terraform 1.10 or later.
+terraform_version_constraint  = "~> 1.10"
+terragrunt_version_constraint = ">= 1.0"
+
 locals {
   # Determine deployment location based on the repo path:
   #   "<namespace>/<aws_account_name>/<aws_region>/<deployment_name>"
@@ -10,9 +14,14 @@ locals {
   aws_region_raw   = element(local.relative_path_lst, 2)
   deployment_name  = element(local.relative_path_lst, 3)
 
-  aws_region         = length(regexall("^([a-z]{2}(?:-gov){0,1}-(?:central|east|north|south|west){1,2}-\\d)$", local.aws_region_raw)) > 0 ? local.aws_region_raw : local.default_aws_region
-  default_aws_region = get_env("AWS_DEFAULT_REGION", "us-west-2")
-  repo_name          = get_env("REPO_NAME", "unknown")
+  # Account-wide resources such as IAM live in a "_global" directory. They use
+  # one fixed home region. Any other directory name must be an AWS region:
+  # regex() fails the run otherwise, rather than silently using a default.
+  global_region = get_env("GLOBAL_REGION", "us-west-2")
+  aws_region    = local.aws_region_raw == "_global" ? local.global_region : regex("^[a-z]{2}(?:-gov){0,1}-(?:central|east|north|south|west){1,2}-\\d$", local.aws_region_raw)
+
+  # No default: a missing REPO_NAME must fail, not move state to a new key.
+  repo_name = get_env("REPO_NAME")
 
   # Region where the Terraform state bucket and its SSM registration live.
   state_region = get_env("TF_STATE_REGION", "us-west-2")
@@ -64,5 +73,12 @@ terraform {
   extra_arguments "output" {
     commands  = ["plan"]
     arguments = ["-out", "terraform.plan"]
+  }
+
+  # Wait for a held state lock instead of failing, so overlapping plan and
+  # apply runs queue on the lock.
+  extra_arguments "lock" {
+    commands  = ["plan", "apply"]
+    arguments = ["-lock-timeout=10m"]
   }
 }

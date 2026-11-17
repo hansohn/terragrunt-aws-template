@@ -4,15 +4,15 @@
 # maintainable: https://github.com/gruntwork-io/terragrunt
 # ---------------------------------------------------------------------------------------------------------------------
 
-# Include all settings from the root terragrunt-common.hcl file
+# Include all settings from the root root.hcl file
 include "root" {
-  path   = find_in_parent_folders("terragrunt-common.hcl")
+  path   = find_in_parent_folders("root.hcl")
   expose = true
 }
 
 # Local expressions
 locals {
-  parent_dir          = get_parent_terragrunt_dir("terragrunt-common.hcl")
+  parent_dir          = get_parent_terragrunt_dir("root.hcl")
   aws_account_id      = include.root.locals.aws_account_id
   aws_account_name    = include.root.locals.aws_account_name
   aws_region          = include.root.locals.aws_region

@@ -21,7 +21,7 @@
 
 A starting point for Terragrunt stacks on AWS. Stacks live under
 `deployments/<account>/<region>/<stack>`, share one
-`terragrunt-common.hcl`, and deploy from GitHub Actions without long-lived credentials.
+`root.hcl`, and deploy from GitHub Actions without long-lived credentials.
 
 ## Highlights
 
@@ -55,9 +55,13 @@ that path is how Terragrunt locates each stack. Each account is bootstrapped by
 [`aws-account-bootstrap`][bootstrap], which provisions the S3 backend, the
 deploy/plan roles, and the `/org/tf/state-bucket` SSM parameter this template
 reads. Authentication happens **before** Terragrunt runs — the runner is already
-in the target account, so `terragrunt-common.hcl` resolves the account ID from
+in the target account, so `root.hcl` resolves the account ID from
 `aws sts get-caller-identity` and the backend bucket from SSM (no `assume_role`,
 no org lookup).
+
+Account-wide resources such as IAM go in `deployments/<account>/_global/<stack>`.
+The `_global` stacks use the region in `GLOBAL_REGION` (default `us-west-2`). Any
+other directory in the region position must be an AWS region name, or the run fails.
 
 ### Local plans
 
