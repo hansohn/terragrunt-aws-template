@@ -14,7 +14,7 @@ env:
   # never planned or applied with these credentials. Keep in sync with
   # ACCOUNT_LABEL below.
   TG_WORKING_DIR: './deployments/sandbox'
-  # State key + provider tags read by terragrunt-common.hcl (matches the local
+  # State key + provider tags read by root.hcl (matches the local
   # Makefile's `basename $PWD`, so CI and local share one state path).
   REPO_NAME: ${{ github.event.repository.name }}
   # Hub trust model (see hansohn/aws-org-bootstrap): OIDC into this runner role,
