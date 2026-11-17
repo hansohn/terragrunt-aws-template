@@ -1,0 +1,6 @@
+---
+rules:
+  self-repository:
+    ignore:
+      # './' is the established local-action syntax; '$/' is not needed.
+      - terragrunt.yml
