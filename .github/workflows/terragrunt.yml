@@ -10,7 +10,10 @@ on:
   workflow_dispatch:
 
 env:
-  TG_WORKING_DIR: './deployments'
+  # Scope runs to one account's directory so a stack for another account is
+  # never planned or applied with these credentials. Keep in sync with
+  # ACCOUNT_LABEL below.
+  TG_WORKING_DIR: './deployments/sandbox'
   # State key + provider tags read by terragrunt-common.hcl (matches the local
   # Makefile's `basename $PWD`, so CI and local share one state path).
   REPO_NAME: ${{ github.event.repository.name }}
