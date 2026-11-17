@@ -72,4 +72,11 @@ terraform {
     commands  = ["plan"]
     arguments = ["-out", "terraform.plan"]
   }
+
+  # Wait for a held state lock instead of failing, so overlapping plan and
+  # apply runs queue on the lock.
+  extra_arguments "lock" {
+    commands  = ["plan", "apply"]
+    arguments = ["-lock-timeout=10m"]
+  }
 }

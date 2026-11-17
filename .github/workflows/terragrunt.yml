@@ -37,6 +37,9 @@ jobs:
   format:
     name: Format
     runs-on: ubuntu-latest
+    env:
+      # Check every HCL file, including root.hcl, not only the sandbox units.
+      TG_WORKING_DIR: '.'
     container:
       image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
     steps:
@@ -74,11 +77,6 @@ jobs:
     container:
       image: hansohn/terraform-aws:latest  # zizmor: ignore[unpinned-images] first-party image, tracks latest tooling
     needs: [format, lint]
-    # Plans take the state lock, so run them one at a time. A newer queued
-    # plan replaces an older queued one.
-    concurrency:
-      group: plan-${{ github.workflow }}
-      cancel-in-progress: false
     # Add an `env:` block here to wire any per-repo provider secrets.
     steps:
       - name: Checkout
