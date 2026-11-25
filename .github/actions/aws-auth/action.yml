@@ -30,7 +30,7 @@ runs:
   steps:
     # Hop 1: exchange the GitHub OIDC token for the hub runner role.
     - name: Assume hub runner role (OIDC)
-      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd  # v6.3.0
+      uses: aws-actions/configure-aws-credentials@45666896f5d8e0f10ae255413f3a4cdd03bdc8f5  # v6.3.1
       with:
         role-to-assume: ${{ inputs.runner-role-arn }}
         role-session-name: gha-${{ github.run_id }}
@@ -58,7 +58,7 @@ runs:
 
     # Hop 2: role-chain from the runner into the account's deploy role.
     - name: Assume deploy role (chained)
-      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd  # v6.3.0
+      uses: aws-actions/configure-aws-credentials@45666896f5d8e0f10ae255413f3a4cdd03bdc8f5  # v6.3.1
       with:
         role-to-assume: >-
           arn:aws:iam::${{ steps.resolve.outputs.account-id }}:role/${{ inputs.deploy-role-path }}
